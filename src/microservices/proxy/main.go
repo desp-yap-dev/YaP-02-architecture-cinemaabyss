@@ -62,7 +62,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	// Health check
-	if path == "/api/movies/health" {
+	if path == "/health" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 		return
