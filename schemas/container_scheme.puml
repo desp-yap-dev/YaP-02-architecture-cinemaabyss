@@ -1,0 +1,63 @@
+@startuml
+title C4. Диаграмма контейнеров
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' Пользователи системы
+Person(user, "Пользователь", "Ноутбук, смарт, телефон")
+
+' Микросервисы Умного дома
+Container(api_gateway, "API gateway", "Роутинг-сервис")
+
+Container(movie_service, "MovieService", "Сервис управления фильмами")
+Container(subscription_service, "SubscriptionService", "Сервис управления подписками")
+Container(user_service, "UserService", "Сервис управления пользователями")
+Container(payment_service, "PaymentService", "Сервис управления платежами")
+Container(recommendation_service, "RecommendationService", "Сервис рекомендаций")
+Container(streaming_service, "StreamingService", "Сервис потокового вещания")
+Container(notification_service, "NotificationService", "Сервис уведомлений")
+
+ContainerDb(user_service_db, "UserDb", "PostgreSQL", "База данных пользователей")
+ContainerDb(movie_service_db, "MovieDb", "PostgreSQL", "База данных фильмов")
+ContainerDb(payment_service_db, "PaymentDb", "PostgreSQL", "База данных платежей")
+ContainerDb(subscription_service_db, "SubscriptionDb", "PostgreSQL", "База данных подписок")
+
+Container_Ext(message_service_ext, "MessageService", "RabbitMQ", "Очередь сообщений")
+Container_Ext(recommendation_api, "RecommendationApi", "Внешняя рекомендательная система")
+
+Container_Ext(message_service, "MessageService", "RabbitMQ", "Очередь сообщений")
+
+Container_Ext(payment_api, "PaymentApi", "Внешний API оплаты")
+
+Container(cdn, "CDN", "Сервис доставки контента")
+
+' Взаимодействие
+Rel(user, api_gateway, "Использует")
+
+Rel(api_gateway, user_service, "Запросы по пользователям", "HTTP")
+Rel(api_gateway, movie_service, "Запросы по фильмам", "HTTP")
+Rel(api_gateway, subscription_service, "Запросы по подпискам", "HTTP")
+Rel(api_gateway, payment_service, "Запросы по платежам", "HTTP")
+Rel(api_gateway, streaming_service, "Запросы на потоковое вещание", "HTTP")
+Rel(api_gateway, recommendation_service, "Запросы на рекомендации", "HTTP")
+
+Rel(user_service, user_service_db, "Чтение/запись")
+Rel(movie_service, movie_service_db, "Чтение/запись")
+Rel(subscription_service, subscription_service_db, "Чтение/запись")
+Rel(payment_service, payment_service_db, "Чтение/запись")
+Rel(streaming_service, cdn, "Получение контента", "HTTP")
+Rel(payment_service, payment_api, "Обработка платежей", "HTTP")
+
+Rel(recommendation_service, message_service_ext, "Обмен сообщениями с внешней рекомендательной системой", "AMQP")
+Rel(recommendation_api, message_service_ext, "Отправка данных для рекомендаций", "AMQP")
+
+Rel(recommendation_service, message_service, "Обмен сообщениями с внутренними сервисами", "AMQP")
+Rel(notification_service, message_service, "Получение рекомендаций для пользователя", "AMQP")
+Rel(streaming_service, message_service, "Отправка уведомлений о начале просмотра", "AMQP")
+
+Rel(subscription_service, message_service, "подписка на сообщение об оплате", "AMQP")
+Rel(payment_service, message_service, "публикация сообщения об успешной оплате", "AMQP")
+
+Rel(notification_service, user, "Отправка уведомлений", "push")
+
+@enduml
